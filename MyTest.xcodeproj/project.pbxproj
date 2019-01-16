@@ -23,6 +23,7 @@
 		4E15DF6221A4045B00CBA08A /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E15DF6121A4045B00CBA08A /* NotificationController.swift */; };
 		4E15DF6421A4045C00CBA08A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E15DF6321A4045C00CBA08A /* Assets.xcassets */; };
 		4E15DFB121A4057600CBA08A /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E15DFB021A4057600CBA08A /* HealthKit.framework */; };
+		4EC7256C21EF42B100DAC933 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EC7256B21EF42B100DAC933 /* HealthKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,6 +110,8 @@
 		4E15DFAE21A4057600CBA08A /* MyTest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MyTest.entitlements; sourceTree = "<group>"; };
 		4E15DFB021A4057600CBA08A /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		4E15DFB321A42BB700CBA08A /* MyTest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MyTest.entitlements; sourceTree = "<group>"; };
+		4EC7256A21EF42B100DAC933 /* MyTest WatchKit Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "MyTest WatchKit Extension.entitlements"; sourceTree = "<group>"; };
+		4EC7256B21EF42B100DAC933 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS5.1.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,6 +141,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC7256C21EF42B100DAC933 /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +216,7 @@
 		4E15DF5C21A4045B00CBA08A /* MyTest WatchKit Extension */ = {
 			isa = PBXGroup;
 			children = (
+				4EC7256A21EF42B100DAC933 /* MyTest WatchKit Extension.entitlements */,
 				4E15DFB221A4249D00CBA08A /* Support */,
 				4E15DF5D21A4045B00CBA08A /* InterfaceController.swift */,
 				4E15DF5F21A4045B00CBA08A /* ExtensionDelegate.swift */,
@@ -243,6 +248,7 @@
 		4E15DFAF21A4057600CBA08A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4EC7256B21EF42B100DAC933 /* HealthKit.framework */,
 				4E15DFB021A4057600CBA08A /* HealthKit.framework */,
 			);
 			name = Frameworks;
@@ -380,6 +386,11 @@
 					};
 					4E15DF5721A4045B00CBA08A = {
 						CreatedOnToolsVersion = 10.0;
+						SystemCapabilities = {
+							com.apple.HealthKit.watchos = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -658,6 +669,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				CODE_SIGN_ENTITLEMENTS = "MyTest WatchKit Extension/MyTest WatchKit Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = YCBDJW7V9C;
 				INFOPLIST_FILE = "MyTest WatchKit Extension/Info.plist";
@@ -680,6 +692,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				CODE_SIGN_ENTITLEMENTS = "MyTest WatchKit Extension/MyTest WatchKit Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = YCBDJW7V9C;
 				INFOPLIST_FILE = "MyTest WatchKit Extension/Info.plist";
