@@ -8,18 +8,31 @@
 
 import UIKit
 import HealthKit
+import WatchConnectivity
 
-class ViewController:  UIViewController{
+class ViewController:  UIViewController,WCSessionDelegate{
+
+    
+
+    
 
 
     var healthStore = HKHealthStore()
     let heartRateUnit:HKUnit = HKUnit(from: "count/min")
-    let heartRateVariabilityUnit:HKUnit = HKUnit(from: "ms")
-    let stepCountUnit: HKUnit = HKUnit(from: LengthFormatter.Unit.meter)
     var myAnchor: HKQueryAnchor? = nil
     
+    let session : WCSession!
+    // MARK: Init
+    required init?(coder aDecoder: NSCoder) {
+        self.session = WCSession.default
+        super.init(coder: aDecoder)
+    }
+    
+    @IBOutlet weak var loglabel: UILabel!
+    
     @IBAction func testButton(_ sender: Any) {
-        print("press button")
+        print()
+        self.loglabel.text = "press button"
 //        self.testHKAnchorObjectQueue()
     }
     
@@ -28,8 +41,44 @@ class ViewController:  UIViewController{
         print("hahaha")
         // Do any additional setup after loading the view, typically from a nib.
         self.activateHealthKit()
+        //WCSession
+        if (WCSession.isSupported()) {
+            session.delegate = self
+            session.activate()
+        }
 
     }
+    
+    // MARK: WCSessionDelegate
+    
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        
+//        print(message.description)
+        let nameString = message["buttonName"] as! String?
+        DispatchQueue.main.async {
+            self.loglabel.text = nameString
+        }
+        
+        }
+    
+    
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        guard activationState == .activated else {
+            self.loglabel.text = "WCSession is not activated."
+            return
+        }
+    }
+    
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        
+    }
+    
+    func sessionDidDeactivate(_ session: WCSession) {
+        
+    }
+    
+    
+    
     
     
     // TODO：requestAuthorization 要修改 info.plist 不然闪退
@@ -52,164 +101,50 @@ class ViewController:  UIViewController{
             }else{
                 print("seccessfully get healthKit authorization")
             }
-            self.retrieveValues()
-//            self.testHKAnchorObjectQueue()
-//            self.testObseverQueue()
+
         }
     }
     
-    func retrieveValues()  {
-        let heartRateType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.heartRate)!
-        let heartRateVariabilityType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.heartRateVariabilitySDNN)!
-        let stepCountType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
-        
-        let sortDesc = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        // Get all samples from the last 24 hours
-        let endDate = Date()
-        let startDate = endDate.addingTimeInterval(-1.0 * 60.0 * 5.0)
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: [])
-        
-        let query = HKSampleQuery(sampleType: heartRateVariabilityType, predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDesc])
-        {
-            (query, samplesOrNil, error) in
-            if let samples = samplesOrNil {
-                print("样本数据长度为：  \(samples.count)")
-                for i in stride(from: 0, to: samples.count, by: 1)
-                {
-                    guard let currData:HKQuantitySample = samples[i] as? HKQuantitySample else { return }
-                    
-                    let hearhRate: Double = (currData.quantity.doubleValue(for: self.heartRateVariabilityUnit))
-                    let tempStringForHR:String = String(format:"%.1f", hearhRate)
-                    
-                    print(tempStringForHR)
-                }
-                DispatchQueue.main.async{
-                   
-                }
-                
-            } else {
-                print("No heart rate samples available.")
-            }
-        }
-        self.healthStore.execute(query)
-    }
-        
+    
+    
+    
+    
+    
+//    func retrieveValues()  {
+//        let heartRateType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.heartRate)!
+//        let heartRateVariabilityType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.heartRateVariabilitySDNN)!
+//        let stepCountType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
 //
-//    func testHKAnchorObjectQueue()  {
-//        // Create the step count type.
-//        guard let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
-//            // This should never fail when using a defined constant.
-//            fatalError("*** Unable to get the step count type ***")
-//        }
-//
-//
-//
+//        let sortDesc = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+//        // Get all samples from the last 24 hours
 //        let endDate = Date()
-//        let startDate = endDate.addingTimeInterval(-1.0 * 60.0 * 60.0)
+//        let startDate = endDate.addingTimeInterval(-1.0 * 60.0 * 5.0)
 //        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: [])
 //
-//        // Create the query.
-//        let query = HKAnchoredObjectQuery(type: heartRateType,
-//                                          predicate: predicate,
-//                                          anchor: self.myAnchor,
-//                                          limit: HKObjectQueryNoLimit)
-//        { (query, samplesOrNil, deletedObjectsOrNil, newAnchor, errorOrNil) in
+//        let query = HKSampleQuery(sampleType: heartRateVariabilityType, predicate: nil, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDesc])
+//        {
+//            (query, samplesOrNil, error) in
+//            if let samples = samplesOrNil {
+//                print("样本数据长度为：  \(samples.count)")
+//                for i in stride(from: 0, to: samples.count, by: 1)
+//                {
+//                    guard let currData:HKQuantitySample = samples[i] as? HKQuantitySample else { return }
 //
-//            guard let samples = samplesOrNil, let deletedObjects = deletedObjectsOrNil else {
-//                // Handle the error here.
-//                fatalError("*** An error occurred during the initial query: \(errorOrNil!.localizedDescription) ***")
-//            }
+//                    let hearhRate: Double = (currData.quantity.doubleValue(for: self.heartRateVariabilityUnit))
+//                    let tempStringForHR:String = String(format:"%.1f", hearhRate)
 //
-//            self.myAnchor = newAnchor
+//                    print(tempStringForHR)
+//                }
+//                DispatchQueue.main.async{
 //
-//            for heartRateSample in samples {
-//                // Process the new step count samples here.
-//                print("HKAnchoredObjectQuery: \(heartRateSample.endDate)")
+//                }
 //
-//                guard let currData:HKQuantitySample = heartRateSample as? HKQuantitySample else { return }
-//
-//                let hearhRate: Double = (currData.quantity.doubleValue(for: self.heartRateUnit))
-//                let tempStringForHR:String = String(format:"%.1f", hearhRate)
-//
-//                print(tempStringForHR)
-//
-//
-//            }
-//
-//            for deletedStepCountSamples in deletedObjects {
-//                // Process the deleted step count samples here.
+//            } else {
+//                print("No heart rate samples available.")
 //            }
 //        }
-//
-//        // Optionally, add an update handler.
-//        query.updateHandler = { (query, samplesOrNil, deletedObjectsOrNil, newAnchor, errorOrNil) in
-//
-//            guard let samples = samplesOrNil, let deletedObjects = deletedObjectsOrNil else {
-//                // Handle the error here.
-//                fatalError("*** An error occurred during an update: \(errorOrNil!.localizedDescription) ***")
-//            }
-//
-//            self.myAnchor = newAnchor
-//
-//            for heartRateSample in samples {
-//                // Process the step counts from the update here.
-//                guard let currData:HKQuantitySample = heartRateSample as? HKQuantitySample else { return }
-//
-//                let hearhRate: Double = (currData.quantity.doubleValue(for: self.heartRateUnit))
-//                let tempStringForHR:String = String(format:"%.1f", hearhRate)
-//
-//                print(tempStringForHR)
-//                print("HKAnchoredObjectQuery.updateHandler: \(heartRateSample.endDate)")
-//
-//            }
-//
-//            for deletedStepCountSamples in deletedObjects {
-//                // Process the deleted step count samples from the update here.
-//            }
-//        }
-//
-//        // Run the query.
-//        healthStore.execute(query)
+//        self.healthStore.execute(query)
 //    }
-//
-//    func testObseverQueue() {
-//        guard let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
-//            // This should never fail when using a defined constant.
-//            fatalError("*** Unable to get the  type ***")
-//        }
-//
-//        let query = HKObserverQuery(sampleType: heartRateType, predicate: nil) {
-//            query, completionHandler, error in
-//
-//            if error != nil {
-//
-//                // Perform Proper Error Handling Here...
-//                print("*** An error occured while setting up the  observer. \(error!.localizedDescription) ***")
-//                abort()
-//            }
-//            print("new sample added")
-//            // Take whatever steps are necessary to update your app's data and UI
-//            // This may involve executing other queries
-//            self.retrieveValues()
-//
-//            // If you have subscribed for background updates you must call the completion handler here.
-//            // completionHandler()
-//            completionHandler()
-//        }
-//
-//        healthStore.execute(query)
-//        healthStore.enableBackgroundDelivery(for: heartRateType, frequency: HKUpdateFrequency.immediate){
-//            success, error in
-//            if error != nil {
-//                // Perform Proper Error Handling Here...
-//                print("*** An error occured while setting up the  observer. \(error!.localizedDescription) ***")
-////                abort()
-//            }
-//
-//            if success{
-//                print("the background delivery was successfully enabled")
-//            }
-//        }
-//    }
+    
 }
 

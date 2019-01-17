@@ -13,20 +13,33 @@
             <objects>
                 <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModule="MyTest_WatchKit_App" customModuleProvider="target">
                     <items>
-                        <label alignment="left" text="心率" id="XnS-ZJ-2G5"/>
-                        <label alignment="left" text="加速度" id="4St-ef-WPy"/>
-                        <label height="20" alignment="left" text="角加速度" id="MEU-TL-e6m"/>
-                        <label alignment="left" text="时间" id="Zsw-R2-UQs"/>
-                        <label height="20" alignment="left" text="log" id="bya-W5-5uA"/>
                         <button width="1" alignment="left" title="start" id="q5Q-iB-fRw">
                             <connections>
                                 <action selector="startBtnTaped" destination="AgC-eL-Hgc" id="XmW-hq-xEO"/>
                             </connections>
                         </button>
+                        <label alignment="left" text="心率" id="XnS-ZJ-2G5"/>
+                        <group width="1" alignment="left" id="M5D-4e-ZRz">
+                            <items>
+                                <label alignment="left" text="accx" id="4St-ef-WPy"/>
+                            </items>
+                        </group>
+                        <label alignment="left" text="accy" id="54s-7z-ZkO"/>
+                        <label alignment="left" text="accz" id="Gst-wM-xY6"/>
+                        <label height="20" alignment="left" text="角加速度" id="MEU-TL-e6m"/>
+                        <label alignment="left" text="时间" id="Zsw-R2-UQs"/>
+                        <label height="20" alignment="left" text="log" id="bya-W5-5uA"/>
+                        <button width="1" alignment="left" title="初始化" id="jDW-DY-pNu">
+                            <connections>
+                                <action selector="myclean" destination="AgC-eL-Hgc" id="v0n-f8-LXA"/>
+                            </connections>
+                        </button>
                     </items>
                     <connections>
                         <outlet property="HRlabel" destination="XnS-ZJ-2G5" id="Cce-Rh-Ac3"/>
-                        <outlet property="acclabel" destination="4St-ef-WPy" id="ehf-o2-wbt"/>
+                        <outlet property="accXlabel" destination="4St-ef-WPy" id="ehf-o2-wbt"/>
+                        <outlet property="accYlabel" destination="54s-7z-ZkO" id="Fcf-xA-nAM"/>
+                        <outlet property="accZlabel" destination="Gst-wM-xY6" id="mHO-TP-k9W"/>
                         <outlet property="gyrlabel" destination="MEU-TL-e6m" id="P0g-St-ctJ"/>
                         <outlet property="loglabel" destination="bya-W5-5uA" id="Nb8-c9-bRL"/>
                         <outlet property="starStopBtn" destination="q5Q-iB-fRw" id="BBN-bt-SaT"/>

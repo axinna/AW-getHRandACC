@@ -10,12 +10,16 @@ import WatchKit
 import Foundation
 import HealthKit
 import CoreMotion
+import WatchConnectivity
 
-class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
+class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate, WCSessionDelegate {
 
+    var count = 0
     
     @IBOutlet weak var HRlabel: WKInterfaceLabel!
-    @IBOutlet weak var acclabel: WKInterfaceLabel!
+    @IBOutlet weak var accXlabel: WKInterfaceLabel!
+    @IBOutlet weak var accYlabel: WKInterfaceLabel!
+    @IBOutlet weak var accZlabel: WKInterfaceLabel!
     @IBOutlet weak var gyrlabel: WKInterfaceLabel!
     @IBOutlet weak var timelabel: WKInterfaceLabel!
     @IBOutlet weak var loglabel: WKInterfaceLabel!
@@ -37,18 +41,30 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
     let manager = CMMotionManager()
     var managerActive = false
     
+    // MARK: Properties 消息传输
+    let session: WCSession!
+    
+    // life cycle
+    override init() {
+        if(WCSession.isSupported()) {
+            session =  WCSession.default
+        } else {
+            session = nil
+        }
+    }
+    
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
         // Configure interface objects here.
         if manager.isAccelerometerAvailable{
-            acclabel.setTextColor(UIColor.green)
+            accXlabel.setTextColor(UIColor.green)
+            accYlabel.setTextColor(UIColor.green)
+            accZlabel.setTextColor(UIColor.green)
         }
         
         if manager.isGyroAvailable{
             gyrlabel.setTextColor(UIColor.green)
-        }else{
-            gyrlabel.setText("can not")
         }
         
     }
@@ -56,6 +72,10 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()
+        if (WCSession.isSupported()) {
+            session.delegate = self
+            session.activate()
+        }
         guard HKHealthStore.isHealthDataAvailable() == true else {
             loglabel.setText("HealthData not available")
             return
@@ -114,6 +134,8 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
         workoutSession = nil
     }
     
+    
+    //
     @IBAction func startBtnTaped() {
         if (self.workoutActive) {
             //finish the current workout
@@ -136,16 +158,20 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
             self.manager.stopAccelerometerUpdates()
         }else{
             self.managerActive = true
-            manager.accelerometerUpdateInterval = 1
+            manager.accelerometerUpdateInterval = 0.5
             manager.startAccelerometerUpdates(to: OperationQueue.main){
                 (data, error) -> Void in
                 if data == nil{
                     return
                 }
-                self.acclabel.setText(String(data!.acceleration.x))
+                self.accXlabel.setText(String(data!.acceleration.x))
+                self.accYlabel.setText(String(data!.acceleration.y))
+                self.accZlabel.setText(String(data!.acceleration.z))
             }
+            
         }
         /////////////////
+
     }
     
     func startWorkout() {
@@ -182,12 +208,14 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
         let heartRateQuery = HKAnchoredObjectQuery(type: quantityType, predicate: predicate, anchor: nil, limit: Int(HKObjectQueryNoLimit)) { (query, sampleObjects, deletedObjects, newAnchor, error) -> Void in
             //guard let newAnchor = newAnchor else {return}
             //self.anchor = newAnchor
-            self.updateHeartRate(sampleObjects)
+//            self.updateHeartRate(sampleObjects)
         }
         
         heartRateQuery.updateHandler = {(query, samples, deleteObjects, newAnchor, error) -> Void in
             //self.anchor = newAnchor!
             self.updateHeartRate(samples)
+            //
+            self.mysendData()
             // samples 产生的时间
             self.heartRateProducedTime = Date()
             let dformatter = DateFormatter()
@@ -204,17 +232,40 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
             guard let sample = heartRateSamples.first else{return}
             let value = sample.quantity.doubleValue(for: self.heartRateUnit)
             self.HRlabel.setText(String(UInt16(value)))
-            
-
-            // retrieve source from sample
-//            let name = sample.sourceRevision.source.name
-//            self.updateDeviceName(name)
-//            self.animateHeart()
         }
     }
     
-    
-    
+    // 消息f传输。
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        guard activationState == .activated else {
+            self.loglabel.setText("WCSession is not activated.")
+            return
+        }
 
+    }
+    
+    func mysendData()  {
+        self.count = count + 1
+        if (WCSession.isSupported()) {
+            
+            let messageDict = ["buttonName":String(self.count)]
+            session.sendMessage(messageDict, replyHandler: { (content: [String: Any]) -> Void in
+                print("Our counterpart sent something back. This is optional")
+            }, errorHandler: { (error) -> Void in
+                print("Watch ： We got an error from our paired device : \(error.localizedDescription)")
+            })
+        }
+    }
+    
+    @IBAction func myclean() {
+        self.count = 0
+        self.accXlabel.setText("accx")
+        self.accYlabel.setText("accy")
+        self.accZlabel.setText("accz")
+        self.loglabel.setText("log")
+        self.timelabel.setText("time")
+        self.HRlabel.setText("heart rate")
+    }
+    
 
 }
