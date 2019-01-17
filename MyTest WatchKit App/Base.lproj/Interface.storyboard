@@ -14,11 +14,11 @@
                 <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModule="MyTest_WatchKit_App" customModuleProvider="target">
                     <items>
                         <label alignment="left" text="心率" id="XnS-ZJ-2G5"/>
-                        <label alignment="left" text="Label" id="4St-ef-WPy"/>
+                        <label alignment="left" text="加速度" id="4St-ef-WPy"/>
                         <label height="20" alignment="left" text="角加速度" id="MEU-TL-e6m"/>
                         <label alignment="left" text="时间" id="Zsw-R2-UQs"/>
                         <label height="20" alignment="left" text="log" id="bya-W5-5uA"/>
-                        <button width="1" alignment="left" title="Button" id="q5Q-iB-fRw">
+                        <button width="1" alignment="left" title="start" id="q5Q-iB-fRw">
                             <connections>
                                 <action selector="startBtnTaped" destination="AgC-eL-Hgc" id="XmW-hq-xEO"/>
                             </connections>

@@ -9,6 +9,7 @@
 import WatchKit
 import Foundation
 import HealthKit
+import CoreMotion
 
 class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
 
@@ -25,17 +26,31 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
     var currenQuery : HKQuery?
     //State of the app - is the workout activated
     var workoutActive = false
-    
+    var heartRateProducedTime :Date?
     var workoutSession : HKWorkoutSession?
     var workoutStarDate : Date?
     var workoutEndDate : Date?
     var workoutEvents = [HKWorkoutEvent]()
     var metadata = [String: Any]()
     
+    //加速度 陀螺仪
+    let manager = CMMotionManager()
+    var managerActive = false
+    
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
         // Configure interface objects here.
+        if manager.isAccelerometerAvailable{
+            acclabel.setTextColor(UIColor.green)
+        }
+        
+        if manager.isGyroAvailable{
+            gyrlabel.setTextColor(UIColor.green)
+        }else{
+            gyrlabel.setText("can not")
+        }
+        
     }
     
     override func willActivate() {
@@ -103,16 +118,34 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
         if (self.workoutActive) {
             //finish the current workout
             self.workoutActive = false
-            self.starStopBtn.setTitle("Start")
+            self.starStopBtn.setTitle("To Start")
+            self.starStopBtn.setBackgroundColor(UIColor.red)
             if let workout = self.workoutSession {
                 healthStore.end(workout)
             }
         } else {
             //start a new workout
             self.workoutActive = true
-            self.starStopBtn.setTitle("Stop")
+            self.starStopBtn.setTitle("To Stop")
+            self.starStopBtn.setBackgroundColor(UIColor.green)
             startWorkout()
         }
+        /////////////////
+        if (self.managerActive) {
+            self.managerActive = false
+            self.manager.stopAccelerometerUpdates()
+        }else{
+            self.managerActive = true
+            manager.accelerometerUpdateInterval = 1
+            manager.startAccelerometerUpdates(to: OperationQueue.main){
+                (data, error) -> Void in
+                if data == nil{
+                    return
+                }
+                self.acclabel.setText(String(data!.acceleration.x))
+            }
+        }
+        /////////////////
     }
     
     func startWorkout() {
@@ -155,6 +188,11 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
         heartRateQuery.updateHandler = {(query, samples, deleteObjects, newAnchor, error) -> Void in
             //self.anchor = newAnchor!
             self.updateHeartRate(samples)
+            // samples 产生的时间
+            self.heartRateProducedTime = Date()
+            let dformatter = DateFormatter()
+            dformatter.dateFormat = "HH:mm:ss"
+            self.timelabel.setText("\(dformatter.string(from: self.heartRateProducedTime!))")
         }
         return heartRateQuery
     }
@@ -167,6 +205,7 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate {
             let value = sample.quantity.doubleValue(for: self.heartRateUnit)
             self.HRlabel.setText(String(UInt16(value)))
             
+
             // retrieve source from sample
 //            let name = sample.sourceRevision.source.name
 //            self.updateDeviceName(name)
