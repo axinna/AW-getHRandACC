@@ -39,6 +39,8 @@ class ViewController:  UIViewController,WCSessionDelegate{
     override func viewDidLoad() {
         super.viewDidLoad()
         print("hahaha")
+        self.loglabel.numberOfLines = 0
+        
         // Do any additional setup after loading the view, typically from a nib.
         self.activateHealthKit()
         //WCSession
@@ -54,9 +56,9 @@ class ViewController:  UIViewController,WCSessionDelegate{
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         
 //        print(message.description)
-        let nameString = message["buttonName"] as! String?
+        let nameString = message["heart rate"] as! Double
         DispatchQueue.main.async {
-            self.loglabel.text = nameString
+            self.loglabel.text = String(message["heart rate"] as! Double)+String(message["accX"] as! Double)+String(message["accY"] as! Double)+String(message["accZ"] as! Double)
         }
         
         }

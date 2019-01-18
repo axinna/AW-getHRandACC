@@ -43,6 +43,7 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate, WCSes
     
     // MARK: Properties 消息传输
     let session: WCSession!
+    var messageDict = [String: Double]() //消息传输字典
     
     // life cycle
     override init() {
@@ -158,15 +159,19 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate, WCSes
             self.manager.stopAccelerometerUpdates()
         }else{
             self.managerActive = true
-            manager.accelerometerUpdateInterval = 0.5
+            manager.accelerometerUpdateInterval = 1
             manager.startAccelerometerUpdates(to: OperationQueue.main){
                 (data, error) -> Void in
                 if data == nil{
                     return
                 }
-                self.accXlabel.setText(String(data!.acceleration.x))
-                self.accYlabel.setText(String(data!.acceleration.y))
-                self.accZlabel.setText(String(data!.acceleration.z))
+                
+                self.messageDict.updateValue(data!.acceleration.x, forKey: "accX")
+                self.messageDict.updateValue(data!.acceleration.y, forKey: "accY")
+                self.messageDict.updateValue(data!.acceleration.z, forKey: "accZ")
+                self.accXlabel.setText(String(self.messageDict["accX"]!))
+                self.accYlabel.setText(String(self.messageDict["accY"]!))
+                self.accZlabel.setText(String(self.messageDict["accZ"]!))
             }
             
         }
@@ -227,11 +232,11 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate, WCSes
 
     func updateHeartRate(_ samples: [HKSample]?) {
         guard let heartRateSamples = samples as? [HKQuantitySample] else {return}
-        
+        guard let sample = heartRateSamples.first else{return}
+        let value = sample.quantity.doubleValue(for: self.heartRateUnit)
+        self.messageDict.updateValue(value, forKey: "heart rate")
         DispatchQueue.main.async {
-            guard let sample = heartRateSamples.first else{return}
-            let value = sample.quantity.doubleValue(for: self.heartRateUnit)
-            self.HRlabel.setText(String(UInt16(value)))
+            self.HRlabel.setText(String(UInt16(self.messageDict["heart rate"] ?? 0)))
         }
     }
     
@@ -245,17 +250,20 @@ class InterfaceController: WKInterfaceController,HKWorkoutSessionDelegate, WCSes
     }
     
     func mysendData()  {
+        
         self.count = count + 1
         if (WCSession.isSupported()) {
             
-            let messageDict = ["buttonName":String(self.count)]
-            session.sendMessage(messageDict, replyHandler: { (content: [String: Any]) -> Void in
+            session.sendMessage(self.messageDict, replyHandler: { (content: [String: Any]) -> Void in
                 print("Our counterpart sent something back. This is optional")
             }, errorHandler: { (error) -> Void in
                 print("Watch ： We got an error from our paired device : \(error.localizedDescription)")
             })
         }
     }
+    
+
+ 
     
     @IBAction func myclean() {
         self.count = 0
